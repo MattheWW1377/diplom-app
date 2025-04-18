@@ -1,0 +1,239 @@
+:root {
+  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --card-bg: #ffffff;
+  --text-color: #333;
+  --header-color: #2c3e50;
+  --button-bg: #3498db;
+  --button-hover-bg: #2980b9;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --border: #e0e0e0;
+}
+
+body.dark {
+  --background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+  --card-bg: #34495e;
+  --text-color: #ecf0f1;
+  --header-color: #ecf0f1;
+  --button-bg: #1abc9c;
+  --button-hover-bg: #16a085;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --border: #4a6277;
+}
+
+/* Глобальные стили */
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--background);
+  min-height: 100vh;
+  color: var(--text-color);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Контейнер для центрирования */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Стили для заголовка */
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--header-color);
+  text-align: center;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  position: relative;
+}
+
+h1::after {
+  content: '';
+  width: 60px;
+  height: 4px;
+  background: var(--button-bg);
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Стили для кнопок */
+button, .btn {
+  background: var(--button-bg);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button:hover, .btn:hover {
+  background: var(--button-hover-bg);
+  transform: scale(1.05);
+}
+
+button:active, .btn:active {
+  transform: scale(0.95);
+}
+
+/* Стили для форм */
+form {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--header-color);
+}
+
+form input, form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--card-bg);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* Стили для списка ответов */
+.answers-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Карточка ответа */
+.answer-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border);
+}
+
+.answer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.answer-card p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+}
+
+.answer-card p strong {
+  color: var(--header-color);
+  margin-right: 0.5rem;
+}
+
+.answer-card p svg {
+  margin-right: 0.5rem;
+  color: var(--button-bg);
+}
+
+/* Статус-бар */
+.status-bar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.status-bar .progress {
+  height: 100%;
+  background: var(--button-bg);
+  transition: width 0.5s ease;
+}
+
+/* Стили для страницы деталей */
+.answer-detail {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .answers-list {
+    grid-template-columns: 1fr;
+  }
+
+  form, .answer-detail {
+    padding: 1.5rem;
+  }
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.answer-card, .answer-detail, form {
+  animation: fadeIn 0.5s ease forwards;
+  animation-delay: calc(var(--index) * 0.1s);
+}
+
+/* Стили для переключателя темы */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--button-bg);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--button-hover-bg);
+}
