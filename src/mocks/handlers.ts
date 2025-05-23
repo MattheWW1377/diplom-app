@@ -241,6 +241,56 @@ export const handlers = [
       headers: { 'Content-Type': 'application/json' },
     });
   }),
+
+  // Автоматическая проверка ответа
+  http.post('/api/auto-evaluate/:id', async ({ params }) => {
+    const { id } = params;
+    
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: 'ID ответа не указан' }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const answer = getAnswerById(id as string);
+    if (!answer) {
+      return new Response(
+        JSON.stringify({ error: 'Ответ не найден' }), 
+        { 
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Имитация автоматической проверки
+    const score = Math.floor(Math.random() * 30) + 70; // Случайная оценка от 70 до 100
+    const comment = 'Автоматическая проверка: ответ соответствует требованиям. ' +
+      'Основные критерии выполнены. Рекомендуется обратить внимание на форматирование.';
+
+    // Обновляем ответ
+    const updatedAnswer = updateAnswer(id as string, {
+      status: 'evaluated' as AnswerStatus,
+      score,
+      comment,
+    });
+
+    return new Response(
+      JSON.stringify({ 
+        score, 
+        comment,
+        status: 'evaluated',
+      }), 
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }),
 ];
 
 // Функция для сброса данных (полезно для тестирования)

@@ -16,6 +16,7 @@ interface AnswerContextType {
   answers: Answer[];
   addAnswer: (answer: Answer) => void;
   setAnswers: (answers: Answer[]) => void;
+  updateAnswer: (id: string, updatedAnswer: Answer) => void;
 }
 
 const AnswerContext = createContext<AnswerContextType | undefined>(undefined);
@@ -37,8 +38,14 @@ export const AnswerProvider = ({ children }: { children: ReactNode }) => {
     setAnswers((prev) => [...prev, { ...answer, id: `${prev.length + 1}` }]);
   };
 
+  const updateAnswer = (id: string, updatedAnswer: Answer) => {
+    setAnswers(prev => prev.map(answer => 
+      answer.id === id ? updatedAnswer : answer
+    ));
+  };
+
   return (
-    <AnswerContext.Provider value={{ answers, addAnswer, setAnswers }}>
+    <AnswerContext.Provider value={{ answers, addAnswer, setAnswers, updateAnswer }}>
       {children}
     </AnswerContext.Provider>
   );
