@@ -5,7 +5,9 @@ interface Answer {
   student: string;
   subject: string;
   text: string;
-  status: string;
+  fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
+  fileName?: string;
+  status: 'pending' | 'evaluated';
   score?: number;
   comment?: string;
 }
@@ -24,7 +26,7 @@ export const AnswerProvider = ({ children }: { children: ReactNode }) => {
       student: 'Иван Иванов',
       subject: 'Математика',
       text: 'Пример ответа...',
-      status: 'Оценено',
+      status: 'evaluated',
       score: 85,
       comment: 'Хороший ответ',
     },
