@@ -1,0 +1,158 @@
+:root {
+  /* Основные цвета */
+  --primary-main: #2196f3;
+  --primary-dark: #1976d2;
+  --primary-light: #64b5f6;
+  --secondary-main: #f50057;
+  --secondary-dark: #c51162;
+  --secondary-light: #ff4081;
+
+  /* Светлая тема (по умолчанию) */
+  --background: #f5f7fa;
+  --paper-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --border-color: rgba(0, 0, 0, 0.12);
+  --divider: rgba(0, 0, 0, 0.12);
+  --header-color: #333333;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  
+  /* Состояния */
+  --success: #4caf50;
+  --error: #f44336;
+  --warning: #ff9800;
+  --info: #2196f3;
+
+  /* Специфичные компоненты */
+  --button-bg: var(--primary-main);
+  --button-hover: var(--primary-dark);
+  --chip-default-bg: #e0e0e0;
+  --chip-success-bg: #c8e6c9;
+  --chip-warning-bg: #ffe0b2;
+  --table-header-bg: #f5f5f5;
+  --table-hover: rgba(0, 0, 0, 0.04);
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.23);
+  --input-hover-border: rgba(0, 0, 0, 0.87);
+}
+
+/* Темная тема */
+body.dark {
+  /* Основные цвета остаются теми же */
+  
+  /* Темная тема - основные цвета */
+  --background: #1a2035;  /* Темно-синий фон */
+  --paper-bg: #242b42;    /* Чуть светлее основного фона */
+  --card-bg: #2d3555;     /* Еще светлее для карточек */
+  --text-primary: #e3e8f3; /* Мягкий белый для текста */
+  --text-secondary: rgba(227, 232, 243, 0.7);
+  --border-color: rgba(227, 232, 243, 0.12);
+  --divider: rgba(227, 232, 243, 0.12);
+  --header-color: #e3e8f3;
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  --hover-bg: rgba(227, 232, 243, 0.05);
+
+  /* Специфичные компоненты в темной теме */
+  --button-bg: #3a7bd5;    /* Более яркий синий для кнопок */
+  --button-hover: #4d8fea;
+  --chip-default-bg: #3d4674;
+  --chip-success-bg: rgba(76, 175, 80, 0.15);
+  --chip-warning-bg: rgba(255, 152, 0, 0.15);
+  --table-header-bg: #323b5c;
+  --table-hover: rgba(227, 232, 243, 0.05);
+  --input-bg: #242b42;
+  --input-border: rgba(227, 232, 243, 0.23);
+  --input-hover-border: rgba(227, 232, 243, 0.7);
+}
+
+/* Общие стили для плавных переходов */
+* {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease, 
+              box-shadow 0.3s ease;
+}
+
+/* Базовые стили для body */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Стили для основных элементов Material-UI */
+.MuiPaper-root {
+  background-color: var(--paper-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.MuiTypography-root {
+  color: var(--text-primary) !important;
+}
+
+.MuiTableCell-root {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  background-color: var(--table-header-bg) !important;
+  font-weight: 600 !important;
+}
+
+.MuiTableRow-root:hover {
+  background-color: var(--table-hover) !important;
+}
+
+.MuiButton-contained {
+  background-color: var(--button-bg) !important;
+  color: white !important;
+}
+
+.MuiButton-contained:hover {
+  background-color: var(--button-hover) !important;
+}
+
+.MuiButton-outlined {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.MuiButton-outlined:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.MuiInputBase-root {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.MuiInputBase-root .MuiOutlinedInput-notchedOutline {
+  border-color: var(--input-border) !important;
+}
+
+.MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--input-hover-border) !important;
+}
+
+.MuiInputLabel-root {
+  color: var(--text-secondary) !important;
+}
+
+.MuiChip-root {
+  background-color: var(--chip-default-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.MuiChip-root.MuiChip-colorSuccess {
+  background-color: var(--chip-success-bg) !important;
+  color: #81c784 !important;
+}
+
+.MuiChip-root.MuiChip-colorWarning {
+  background-color: var(--chip-warning-bg) !important;
+  color: #ffb74d !important;
+} 

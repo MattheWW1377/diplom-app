@@ -11,9 +11,15 @@ import {
   IconButton,
   Chip,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useAnswers } from '../context/AnswerContext';
+import { useAuth } from '../context/AuthContext';
 
 // Допустимые типы файлов
 const ALLOWED_FILE_TYPES = [
@@ -29,22 +35,19 @@ const ALLOWED_FILE_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 interface UploadFormData {
-  student: string;
   subject: string;
   file: File | null;
   text: string;
 }
 
 interface FormErrors {
-  student?: string;
   subject?: string;
   file?: string;
   text?: string;
 }
 
-function UploadPage() {
+function StudentUploadPage() {
   const [formData, setFormData] = useState<UploadFormData>({
-    student: '',
     subject: '',
     file: null,
     text: '',
@@ -54,6 +57,7 @@ function UploadPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addAnswer } = useAnswers();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // Проверка типа файла
@@ -70,16 +74,14 @@ function UploadPage() {
     return undefined;
   };
 
-  // Обработка изменения текстовых полей
-  const handleTextChange = (field: keyof UploadFormData) => (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData((prev) => ({
+  // Обработка изменения предмета
+  const handleSubjectChange = (event: SelectChangeEvent<string>) => {
+    setFormData(prev => ({
       ...prev,
-      [field]: event.target.value,
+      subject: event.target.value,
     }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (errors.subject) {
+      setErrors(prev => ({ ...prev, subject: undefined }));
     }
   };
 
@@ -92,7 +94,7 @@ function UploadPage() {
 
     // Проверка размера файла
     if (file.size > MAX_FILE_SIZE) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         file: 'Размер файла не должен превышать 10 МБ',
       }));
@@ -101,23 +103,23 @@ function UploadPage() {
 
     // Проверка типа файла
     if (!isFileTypeAllowed(file)) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         file: 'Недопустимый формат файла. Разрешены: .doc, .docx, .pdf, .txt, .ppt, .pptx',
       }));
       return;
     }
 
-    setFormData((prev) => ({ ...prev, file }));
-    setErrors((prev) => ({ ...prev, file: undefined }));
+    setFormData(prev => ({ ...prev, file }));
+    setErrors(prev => ({ ...prev, file: undefined }));
 
     // Если это текстовый файл, читаем его содержимое
     if (file.type === 'text/plain') {
       try {
         const text = await file.text();
-        setFormData((prev) => ({ ...prev, text }));
+        setFormData(prev => ({ ...prev, text }));
       } catch (error) {
-        setErrors((prev) => ({
+        setErrors(prev => ({
           ...prev,
           file: 'Ошибка чтения файла',
         }));
@@ -127,7 +129,7 @@ function UploadPage() {
 
   // Удаление файла
   const handleRemoveFile = () => {
-    setFormData((prev) => ({ ...prev, file: null, text: '' }));
+    setFormData(prev => ({ ...prev, file: null, text: '' }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -137,12 +139,8 @@ function UploadPage() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.student.trim()) {
-      newErrors.student = 'Введите имя студента';
-    }
-
     if (!formData.subject.trim()) {
-      newErrors.subject = 'Введите предмет';
+      newErrors.subject = 'Выберите предмет';
     }
 
     if (!formData.file && !formData.text.trim()) {
@@ -157,7 +155,7 @@ function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm() || !user) {
       return;
     }
 
@@ -165,7 +163,7 @@ function UploadPage() {
 
     try {
       const formPayload = {
-        student: formData.student,
+        student: user.email,
         subject: formData.subject,
         text: formData.text || formData.file?.name || '',
         fileName: formData.file?.name,
@@ -176,6 +174,7 @@ function UploadPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.email}`,
         },
         body: JSON.stringify(formPayload),
       });
@@ -190,7 +189,7 @@ function UploadPage() {
       // Добавляем ответ в контекст
       addAnswer({
         id,
-        student: formData.student,
+        student: user.email,
         subject: formData.subject,
         text: formData.text || formData.file?.name || '',
         fileName: formData.file?.name,
@@ -201,11 +200,22 @@ function UploadPage() {
       });
 
       setShowSuccess(true);
+      // Очищаем форму после успешной отправки
+      setFormData({
+        subject: '',
+        file: null,
+        text: '',
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // Перенаправляем на страницу результатов через 2 секунды
       setTimeout(() => {
-        navigate('/answers');
+        navigate('/student/results');
       }, 2000);
     } catch (error) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         file: error instanceof Error ? error.message : 'Произошла ошибка при отправке',
       }));
@@ -217,7 +227,6 @@ function UploadPage() {
   // Очистка формы
   const handleReset = () => {
     setFormData({
-      student: '',
       subject: '',
       file: null,
       text: '',
@@ -247,25 +256,6 @@ function UploadPage() {
           maxWidth: 600,
           background: 'var(--card-bg, #fff)',
           color: 'var(--text-color, #333)',
-          '& .MuiInputBase-root': {
-            color: 'var(--text-color, #333)',
-            '& fieldset': {
-              borderColor: 'var(--border-color, rgba(0, 0, 0, 0.23))',
-            },
-            '&:hover fieldset': {
-              borderColor: 'var(--border-hover-color, rgba(0, 0, 0, 0.7))',
-            },
-          },
-          '& .MuiInputLabel-root': {
-            color: 'var(--text-color, #333)',
-            opacity: 'var(--label-opacity, 0.9)',
-          },
-          '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#1976d2',
-          },
-          '& .MuiInputLabel-root.Mui-focused': {
-            color: '#1976d2',
-          },
         }}
       >
         <Typography 
@@ -273,7 +263,10 @@ function UploadPage() {
           component="h1" 
           gutterBottom 
           align="center"
-          sx={{ color: 'var(--text-color, #333)' }}
+          sx={{ 
+            color: 'var(--text-color, #333)',
+            mb: 4,
+          }}
         >
           Загрузите ответ
         </Typography>
@@ -285,39 +278,29 @@ function UploadPage() {
         )}
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
-          <TextField
-            fullWidth
-            required
+          <FormControl 
+            fullWidth 
             margin="normal"
-            label="Студент"
-            value={formData.student}
-            onChange={handleTextChange('student')}
-            error={!!errors.student}
-            helperText={errors.student}
-            sx={{
-              '& .MuiFormHelperText-root': {
-                color: errors.student ? 'error.main' : 'var(--text-color, #333)',
-                opacity: 'var(--helper-opacity, 0.7)',
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            required
-            margin="normal"
-            label="Предмет"
-            value={formData.subject}
-            onChange={handleTextChange('subject')}
             error={!!errors.subject}
-            helperText={errors.subject}
-            sx={{
-              '& .MuiFormHelperText-root': {
-                color: errors.subject ? 'error.main' : 'var(--text-color, #333)',
-                opacity: 'var(--helper-opacity, 0.7)',
-              },
-            }}
-          />
+          >
+            <InputLabel>Предмет</InputLabel>
+            <Select
+              value={formData.subject}
+              label="Предмет"
+              onChange={handleSubjectChange}
+              size="small"
+            >
+              <MenuItem value="Математика">Математика</MenuItem>
+              <MenuItem value="Физика">Физика</MenuItem>
+              <MenuItem value="Информатика">Информатика</MenuItem>
+              <MenuItem value="История">История</MenuItem>
+            </Select>
+            {errors.subject && (
+              <Typography color="error" variant="caption" sx={{ mt: 0.5, ml: 1.5 }}>
+                {errors.subject}
+              </Typography>
+            )}
+          </FormControl>
 
           <Box sx={{ mt: 2, mb: 2 }}>
             <input
@@ -332,9 +315,10 @@ function UploadPage() {
               component="span"
               startIcon={<CloudUploadIcon />}
               onClick={() => fileInputRef.current?.click()}
-              fullWidth
+              size="small"
               sx={{
-                mb: 1,
+                height: '40px',
+                width: '100%',
                 borderColor: 'var(--border-color, rgba(0, 0, 0, 0.23))',
                 color: 'var(--text-color, #333)',
                 '&:hover': {
@@ -352,10 +336,7 @@ function UploadPage() {
                   onDelete={handleRemoveFile}
                   color="primary"
                   variant="outlined"
-                  sx={{
-                    color: 'var(--text-color, #333)',
-                    borderColor: 'var(--border-color, rgba(0, 0, 0, 0.23))',
-                  }}
+                  size="small"
                 />
                 <Typography 
                   variant="caption" 
@@ -377,24 +358,21 @@ function UploadPage() {
             margin="normal"
             label="Текст ответа"
             value={formData.text}
-            onChange={handleTextChange('text')}
-            placeholder="Введите текст ответа или загрузите файл"
+            onChange={(e) => setFormData(prev => ({ ...prev, text: e.target.value }))}
+            error={!!errors.text}
+            helperText={errors.text}
             size="small"
+            placeholder="Введите текст ответа или загрузите файл"
             sx={{
               '& .MuiOutlinedInput-root': {
                 fontSize: '0.9rem',
-                color: 'var(--text-color, #333)',
               },
               '& .MuiInputLabel-root': {
                 fontSize: '0.9rem',
-                color: 'var(--text-color, #333)',
-                opacity: 'var(--label-opacity, 0.9)',
               },
-              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'var(--border-color, rgba(0, 0, 0, 0.23))',
-              },
-              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'var(--border-hover-color, rgba(0, 0, 0, 0.7))',
+              '& .MuiFormHelperText-root': {
+                color: errors.text ? 'error.main' : 'var(--text-color, #333)',
+                opacity: 'var(--helper-opacity, 0.7)',
               },
             }}
           />
@@ -404,8 +382,10 @@ function UploadPage() {
               type="submit"
               variant="contained"
               fullWidth
+              size="small"
               disabled={isSubmitting}
               startIcon={isSubmitting ? <CircularProgress size={20} /> : undefined}
+              sx={{ height: '40px' }}
             >
               {isSubmitting ? 'Отправка...' : 'Отправить'}
             </Button>
@@ -413,9 +393,11 @@ function UploadPage() {
               type="button"
               variant="outlined"
               fullWidth
+              size="small"
               onClick={handleReset}
               disabled={isSubmitting}
               sx={{
+                height: '40px',
                 borderColor: 'var(--border-color, rgba(0, 0, 0, 0.23))',
                 color: 'var(--text-color, #333)',
                 '&:hover': {
@@ -449,4 +431,4 @@ function UploadPage() {
   );
 }
 
-export default UploadPage;
+export default StudentUploadPage; 

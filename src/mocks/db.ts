@@ -3,20 +3,22 @@ interface Answer {
   student: string;
   subject: string;
   text: string;
-  status: string;
-  score: number;
-  comment: string;
+  fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
+  fileName?: string;
+  status: 'pending' | 'in_progress' | 'evaluated';
+  score: number | null;
+  comment: string | null;
 }
 
 let answers: Answer[] = [
   {
     id: '1',
-    student: 'Иван Иванов',
+    student: 'student@example.com',
     subject: 'Математика',
     text: 'Пример ответа...',
-    status: 'Оценено',
-    score: 85,
-    comment: 'Хороший ответ',
+    status: 'pending',
+    score: null,
+    comment: null,
   },
 ];
 
@@ -25,9 +27,24 @@ export const getAnswerById = (id: string): Answer | undefined => {
 };
 
 export const addAnswer = (answer: Answer): void => {
-  answers.push(answer);
+  const existingIndex = answers.findIndex(a => a.id === answer.id);
+  if (existingIndex !== -1) {
+    // Если ответ с таким id уже существует, обновляем его
+    answers[existingIndex] = answer;
+  } else {
+    // Если это новый ответ, добавляем его
+    answers.push(answer);
+  }
 };
 
 export const getAllAnswers = (): Answer[] => {
   return answers;
+};
+
+export const updateAnswer = (id: string, updates: Partial<Answer>): Answer | undefined => {
+  const index = answers.findIndex(a => a.id === id);
+  if (index === -1) return undefined;
+  
+  answers[index] = { ...answers[index], ...updates };
+  return answers[index];
 };

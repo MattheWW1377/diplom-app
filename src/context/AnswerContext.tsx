@@ -7,14 +7,15 @@ interface Answer {
   text: string;
   fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
   fileName?: string;
-  status: 'pending' | 'evaluated';
-  score?: number;
-  comment?: string;
+  status: 'pending' | 'in_progress' | 'evaluated';
+  score: number | null;
+  comment: string | null;
 }
 
 interface AnswerContextType {
   answers: Answer[];
   addAnswer: (answer: Answer) => void;
+  setAnswers: (answers: Answer[]) => void;
 }
 
 const AnswerContext = createContext<AnswerContextType | undefined>(undefined);
@@ -37,7 +38,7 @@ export const AnswerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AnswerContext.Provider value={{ answers, addAnswer }}>
+    <AnswerContext.Provider value={{ answers, addAnswer, setAnswers }}>
       {children}
     </AnswerContext.Provider>
   );
@@ -45,7 +46,7 @@ export const AnswerProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAnswers = () => {
   const context = useContext(AnswerContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAnswers must be used within an AnswerProvider');
   }
   return context;

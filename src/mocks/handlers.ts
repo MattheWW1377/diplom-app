@@ -1,8 +1,17 @@
 import { http } from 'msw';
-import { addAnswer, getAnswerById, getAllAnswers } from './db';
+import { addAnswer, getAnswerById, getAllAnswers, updateAnswer } from './db';
 
 // Интерфейс для тела запроса POST /evaluate
 interface EvaluateRequestBody {
+  student: string;
+  subject: string;
+  text: string;
+  fileName?: string;
+  fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
+}
+
+// Интерфейс для тела запроса POST /api/upload
+interface UploadRequestBody {
   student: string;
   subject: string;
   text: string;
@@ -18,6 +27,21 @@ interface RegisterRequestBody {
   middleName?: string;
   role: 'teacher' | 'student';
   password: string;
+}
+
+// Типы для ответов
+type AnswerStatus = 'pending' | 'in_progress' | 'evaluated';
+
+interface Answer {
+  id: string;
+  student: string;
+  subject: string;
+  text: string;
+  fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
+  fileName?: string;
+  status: AnswerStatus;
+  score: number | null;
+  comment: string | null;
 }
 
 // Хранилище зарегистрированных пользователей
@@ -92,7 +116,7 @@ export const handlers = [
       text,
       fileName,
       fileType,
-      status: 'pending',
+      status: 'pending' as AnswerStatus,
       score,
       comment,
     };
@@ -119,4 +143,92 @@ export const handlers = [
     }
     return new Response(JSON.stringify(answer), { status: 200 });
   }),
+  // Получение всех ответов (для преподавателя)
+  http.get('/api/answers', () => {
+    const answers = getAllAnswers();
+    return new Response(JSON.stringify(answers), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  // Получение ответов студента
+  http.get('/api/student/answers', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ message: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userEmail = authHeader.split(' ')[1];
+    const answers = getAllAnswers();
+    const studentAnswers = answers.filter(answer => answer.student === userEmail);
+    
+    return new Response(JSON.stringify(studentAnswers), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  // Загрузка нового ответа
+  http.post('/api/upload', async ({ request }) => {
+    const { student, subject, text, fileName, fileType } = await request.json() as UploadRequestBody;
+    
+    // Проверка обязательных полей
+    if (!student || !subject || !text) {
+      return new Response(
+        JSON.stringify({ error: 'Все обязательные поля должны быть заполнены' }), 
+        { status: 400 }
+      );
+    }
+
+    const answers = getAllAnswers();
+    const newAnswer: Answer = {
+      id: String(answers.length + 1),
+      student,
+      subject,
+      text,
+      fileName,
+      fileType,
+      status: 'pending' as AnswerStatus,
+      score: null,
+      comment: null,
+    };
+
+    addAnswer(newAnswer);
+    
+    return new Response(JSON.stringify(newAnswer), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  // Обновление статуса ответа
+  http.put('/api/answer/:id', async ({ request, params }) => {
+    const { id } = params;
+    if (!id || typeof id !== 'string') {
+      return new Response(JSON.stringify({ message: 'Invalid ID' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const updates = await request.json() as Partial<Answer>;
+    const updatedAnswer = updateAnswer(id, updates);
+    if (!updatedAnswer) {
+      return new Response(JSON.stringify({ message: 'Answer not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
+    return new Response(JSON.stringify(updatedAnswer), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
 ];
+
+// Функция для сброса данных (полезно для тестирования)
+export const resetAnswers = () => {
+  // Implementation needed
+};

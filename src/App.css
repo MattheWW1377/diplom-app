@@ -1,10 +1,55 @@
-/* Существующие стили */
+/* Контейнер */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
+/* Темная тема */
+body.dark {
+  --background: #121212;
+  --card-bg: #1e1e1e;
+  --text-color: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --button-bg: #2196f3;
+  --button-hover: #1976d2;
+  --header-color: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Светлая тема */
+body {
+  --background: #f0f2f5;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --button-bg: #2196f3;
+  --button-hover: #1976d2;
+  --header-color: #333333;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--background);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+  animation-delay: calc(var(--index) * 0.1s);
+}
+
+/* Существующие стили */
 .answers-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -124,18 +169,6 @@
   transform: translateY(-1px);
 }
 
-/* Анимация появления */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Стили шапки */
 .header {
   background: var(--header-bg, #ffffff);
@@ -212,40 +245,9 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Светлая тема (по умолчанию) */
-:root {
-  --card-bg: #fff;
-  --text-color: #333;
-  --background: #f0f2f5;
-  --header-bg: #ffffff;
-  --theme-btn-bg: #f0f0f0;
-  --theme-btn-hover-bg: #e0e0e0;
-  --border-color: rgba(0, 0, 0, 0.23);
-  --border-hover-color: rgba(0, 0, 0, 0.7);
-  --button-hover-bg: rgba(0, 0, 0, 0.04);
-  --label-opacity: 0.9;
-  --helper-opacity: 0.7;
-  --button-bg: #007bff;
-}
-
-/* Тёмная тема */
-:root[data-theme='dark'] {
-  --card-bg: #2c2c2c;
-  --text-color: #ffffff;
-  --background: #1a1a1a;
-  --header-bg: #2c2c2c;
-  --theme-btn-bg: #444;
-  --theme-btn-hover-bg: #555;
-  --border-color: rgba(255, 255, 255, 0.23);
-  --border-hover-color: rgba(255, 255, 255, 0.4);
-  --button-hover-bg: rgba(255, 255, 255, 0.05);
-  --label-opacity: 0.7;
-  --helper-opacity: 0.7;
-  --button-bg: #1976d2;
-}
-
-body {
-  background: var(--background, #f0f2f5);
-  color: var(--text-color, #333);
-  transition: all 0.3s ease;
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
 }

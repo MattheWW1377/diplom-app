@@ -11,11 +11,16 @@ import {
   Button,
   Stack,
   Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Typography,
   SelectChangeEvent,
 } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import SubjectIcon from '@mui/icons-material/Subject';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { debounce } from 'lodash';
 
 // Функция для перевода статуса на русский
@@ -26,6 +31,16 @@ const getStatusInRussian = (status: string): string => {
     'evaluated': 'Оценено',
   };
   return statusMap[status.toLowerCase()] || status;
+};
+
+// Функция для определения цвета статуса
+const getStatusColor = (status: string): 'default' | 'primary' | 'success' => {
+  const colorMap: { [key: string]: 'default' | 'primary' | 'success' } = {
+    'pending': 'default',
+    'in_progress': 'primary',
+    'evaluated': 'success',
+  };
+  return colorMap[status.toLowerCase()] || 'default';
 };
 
 // Типы для фильтров
@@ -66,7 +81,7 @@ function AnswersPage() {
     setFilters(initialFilters);
   };
 
-  // Фильтрация ответов с использованием useMemo для оптимизации производительности
+  // Фильтрация ответов
   const filteredAnswers = useMemo(() => {
     return answers.filter(answer => {
       const matchesStatus = !filters.status || answer.status.toLowerCase() === filters.status.toLowerCase();
@@ -78,7 +93,7 @@ function AnswersPage() {
     });
   }, [answers, filters]);
 
-  // Оптимизированная функция поиска по имени студента с debounce
+  // Оптимизированная функция поиска по имени студента
   const debouncedStudentSearch = useCallback(
     debounce((value: string) => {
       setFilters(prev => ({ ...prev, studentName: value }));
@@ -87,11 +102,19 @@ function AnswersPage() {
   );
 
   return (
-    <div className="container">
-      <h1>СПИСОК ОТВЕТОВ</h1>
-      
+    <Box className="container">
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        gutterBottom 
+        align="center"
+        sx={{ mb: 4 }}
+      >
+        Список ответов
+      </Typography>
+
       {/* Форма фильтрации */}
-      <Paper sx={{ p: 2, mb: 3 }} className="answer-card">
+      <Paper sx={{ p: 2, mb: 3 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Статус</InputLabel>
@@ -128,7 +151,7 @@ function AnswersPage() {
             label="Поиск по имени студента"
             variant="outlined"
             onChange={(e) => debouncedStudentSearch(e.target.value)}
-            value={filters.studentName}
+            defaultValue={filters.studentName}
           />
 
           <Button
@@ -136,42 +159,59 @@ function AnswersPage() {
             onClick={handleResetFilters}
             sx={{ minWidth: 120 }}
           >
-            СБРОСИТЬ
+            Сбросить
           </Button>
         </Stack>
       </Paper>
 
-      {/* Список ответов */}
-      <div className="answers-list">
-        {filteredAnswers.map((answer, index) => (
-          <div 
-            key={answer.id} 
-            className="answer-card" 
-            style={{ '--index': index } as React.CSSProperties}
-          >
-            <div className="answer-content">
-              <p><PersonIcon /> <strong>Студент:</strong> {answer.student}</p>
-              <p><SubjectIcon /> <strong>Предмет:</strong> {answer.subject}</p>
-              <div className="status-container">
-                <p className="status-text">
-                  <CheckCircleIcon /> <strong>Статус:</strong> {getStatusInRussian(answer.status)}
-                </p>
-                <div className="status-bar">
-                  <div 
-                    className="progress" 
-                    style={{ 
-                      width: answer.status.toLowerCase() === 'evaluated' ? '100%' : 
-                             answer.status.toLowerCase() === 'in_progress' ? '50%' : '0%' 
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            <Link to={`/answer/${answer.id}`} className="details-link">
-              <button className="details-button">Подробнее</button>
-            </Link>
-          </div>
-        ))}
+      {/* Таблица ответов */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Студент</TableCell>
+                <TableCell>Предмет</TableCell>
+                <TableCell>Ответ</TableCell>
+                <TableCell>Статус</TableCell>
+                <TableCell>Оценка</TableCell>
+                <TableCell>Действия</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAnswers.map((answer) => (
+                <TableRow key={answer.id}>
+                  <TableCell>{answer.student}</TableCell>
+                  <TableCell>{answer.subject}</TableCell>
+                  <TableCell>
+                    {answer.fileName || (answer.text.length > 30 
+                      ? `${answer.text.substring(0, 30)}...` 
+                      : answer.text)}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={getStatusInRussian(answer.status)}
+                      color={getStatusColor(answer.status)}
+                      variant="outlined"
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>{answer.score || '—'}</TableCell>
+                  <TableCell>
+                    <Button
+                      component={Link}
+                      to={`/answer/${answer.id}`}
+                      variant="contained"
+                      size="small"
+                    >
+                      Подробнее
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
         
         {filteredAnswers.length === 0 && (
           <Box sx={{ 
@@ -183,8 +223,8 @@ function AnswersPage() {
             Ответы не найдены
           </Box>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 }
 

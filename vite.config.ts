@@ -14,7 +14,8 @@ export default defineConfig({
   ],
   server: {
     headers: {
-      'Service-Worker-Allowed': '/',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
   define: {

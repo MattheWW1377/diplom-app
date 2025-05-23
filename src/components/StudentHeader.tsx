@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { IconButton, Tooltip } from '@mui/material';
 
-function Header() {
+function StudentHeader() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(document.body.classList.contains('dark'));
@@ -45,7 +45,7 @@ function Header() {
       }}>
         <div>
           <Link 
-            to="/upload" 
+            to="/student/upload" 
             style={{ 
               color: 'var(--header-color)', 
               marginRight: '1.5rem', 
@@ -57,7 +57,7 @@ function Header() {
             Загрузить ответ
           </Link>
           <Link 
-            to="/answers" 
+            to="/student/results" 
             style={{ 
               color: 'var(--header-color)', 
               textDecoration: 'none',
@@ -65,7 +65,7 @@ function Header() {
               fontWeight: 500,
             }}
           >
-            Список ответов
+            Мои результаты
           </Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -101,4 +101,4 @@ function Header() {
   );
 }
 
-export default Header;
+export default StudentHeader; 
