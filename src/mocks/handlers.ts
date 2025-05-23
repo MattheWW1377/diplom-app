@@ -1,16 +1,7 @@
 import { http } from 'msw';
 import { addAnswer, getAnswerById, getAllAnswers, updateAnswer } from './db';
 
-// Интерфейс для тела запроса POST /evaluate
-interface EvaluateRequestBody {
-  student: string;
-  subject: string;
-  text: string;
-  fileName?: string;
-  fileType?: 'doc' | 'docx' | 'pdf' | 'txt' | 'ppt' | 'pptx';
-}
-
-// Интерфейс для тела запроса POST /api/upload
+// Интерфейс для тела запроса POST /evaluate и POST /api/upload
 interface UploadRequestBody {
   student: string;
   subject: string;
@@ -94,7 +85,7 @@ export const handlers = [
     );
   }),
   http.post('/evaluate', async ({ request }) => {
-    const body = await request.json() as EvaluateRequestBody;
+    const body = await request.json() as UploadRequestBody;
     const { student, subject, text, fileName, fileType } = body;
 
     // Проверка обязательных полей
@@ -116,7 +107,7 @@ export const handlers = [
       text,
       fileName,
       fileType,
-      status: 'pending' as AnswerStatus,
+      status: 'evaluated' as AnswerStatus,
       score,
       comment,
     };
@@ -124,7 +115,7 @@ export const handlers = [
     addAnswer(newAnswer);
 
     return new Response(
-      JSON.stringify({ id: newAnswer.id, score, comment }), 
+      JSON.stringify({ id: newAnswer.id, score, comment, status: 'evaluated' }), 
       { status: 200 }
     );
   }),
@@ -132,16 +123,32 @@ export const handlers = [
     const answers = getAllAnswers();
     return new Response(JSON.stringify(answers), { status: 200 });
   }),
-  http.get('/answer/:id', ({ params }) => {
+  http.get('/api/answer/:id', ({ params }) => {
     const { id } = params;
     const answer = getAnswerById(id as string);
+    
     if (!answer) {
       return new Response(
         JSON.stringify({ error: 'Ответ не найден' }), 
-        { status: 404 }
+        { 
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
-    return new Response(JSON.stringify(answer), { status: 200 });
+
+    // Убедимся, что статус всегда имеет корректное значение
+    const status = ['pending', 'in_progress', 'evaluated'].includes(answer.status.toLowerCase())
+      ? answer.status.toLowerCase()
+      : 'pending';
+
+    return new Response(
+      JSON.stringify({ ...answer, status }), 
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }),
   // Получение всех ответов (для преподавателя)
   http.get('/api/answers', () => {
@@ -161,7 +168,15 @@ export const handlers = [
       });
     }
 
-    const userEmail = authHeader.split(' ')[1];
+    const [bearer, token] = authHeader.split(' ');
+    if (bearer !== 'Bearer' || !token) {
+      return new Response(JSON.stringify({ message: 'Invalid authorization format' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userEmail = token;
     const answers = getAllAnswers();
     const studentAnswers = answers.filter(answer => answer.student === userEmail);
     
@@ -184,7 +199,7 @@ export const handlers = [
 
     const answers = getAllAnswers();
     const newAnswer: Answer = {
-      id: String(answers.length + 1),
+      id: Date.now().toString(),
       student,
       subject,
       text,
@@ -197,7 +212,7 @@ export const handlers = [
 
     addAnswer(newAnswer);
     
-    return new Response(JSON.stringify(newAnswer), {
+    return new Response(JSON.stringify({ ...newAnswer, status: 'pending' }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -230,5 +245,6 @@ export const handlers = [
 
 // Функция для сброса данных (полезно для тестирования)
 export const resetAnswers = () => {
-  // Implementation needed
+  const answers = getAllAnswers();
+  answers.length = 0; // Очищаем массив ответов
 };

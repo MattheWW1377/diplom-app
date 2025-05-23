@@ -27,13 +27,13 @@ const getStatusInRussian = (status: string): string => {
 };
 
 // Функция для определения цвета статуса
-const getStatusColor = (status: string): 'default' | 'primary' | 'success' => {
-  const colorMap: { [key: string]: 'default' | 'primary' | 'success' } = {
+const getStatusColor = (status: 'pending' | 'in_progress' | 'evaluated'): 'default' | 'primary' | 'success' => {
+  const colorMap: Record<'pending' | 'in_progress' | 'evaluated', 'default' | 'primary' | 'success'> = {
     'pending': 'default',
     'in_progress': 'primary',
     'evaluated': 'success',
   };
-  return colorMap[status.toLowerCase()] || 'default';
+  return colorMap[status];
 };
 
 function StudentResultsPage() {

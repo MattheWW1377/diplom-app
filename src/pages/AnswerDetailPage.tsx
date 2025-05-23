@@ -15,13 +15,17 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ScoreIcon from '@mui/icons-material/Score';
 
 // Функция для перевода статуса на русский
-const getStatusInRussian = (status: string): string => {
+const getStatusInRussian = (status: string | undefined): string => {
+  if (!status) return 'Ожидает проверки';
+  
   const statusMap: { [key: string]: string } = {
     'pending': 'Ожидает проверки',
     'in_progress': 'Проверяется',
     'evaluated': 'Оценено',
   };
-  return statusMap[status.toLowerCase()] || status;
+  
+  const normalizedStatus = status.toLowerCase();
+  return statusMap[normalizedStatus] || 'Ожидает проверки';
 };
 
 function AnswerDetailPage() {
@@ -32,8 +36,9 @@ function AnswerDetailPage() {
   useEffect(() => {
     const fetchAnswer = async () => {
       try {
-        const response = await axios.get(`/answer/${id}`);
+        const response = await axios.get(`/api/answer/${id}`);
         setAnswer(response.data);
+        setError(null);
       } catch (error: any) {
         console.error('Ошибка при загрузке ответа:', error);
         setError(error.response?.data?.error || 'Не удалось загрузить ответ.');
@@ -41,6 +46,12 @@ function AnswerDetailPage() {
     };
     fetchAnswer();
   }, [id]);
+
+  // Безопасное получение статуса
+  const getStatus = () => {
+    if (!answer || !answer.status) return 'pending';
+    return answer.status.toLowerCase();
+  };
 
   if (error) {
     return (
@@ -120,7 +131,7 @@ function AnswerDetailPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleIcon sx={{ color: 'var(--text-color, #333)' }} />
             <Typography>
-              <strong>Статус:</strong> {getStatusInRussian(answer.status)}
+              <strong>Статус:</strong> {getStatusInRussian(getStatus())}
             </Typography>
           </Box>
 
@@ -137,17 +148,16 @@ function AnswerDetailPage() {
             <Box
               sx={{
                 height: '100%',
-                width: answer.status.toLowerCase() === 'evaluated' ? '100%' : '0%',
+                width: getStatus() === 'evaluated' ? '100%' : '0%',
                 background: '#28a745',
                 transition: 'width 0.5s ease',
               }}
             />
           </Box>
 
-          <Typography sx={{ mb: 2 }}>
-            <strong>Текст:</strong>
+          <Box sx={{ mb: 2 }}>
+            <Typography component="div" sx={{ fontWeight: 'bold', display: 'inline' }}>Текст:</Typography>
             <Box 
-              component="div" 
               sx={{ 
                 mt: 1,
                 p: 2,
@@ -158,7 +168,7 @@ function AnswerDetailPage() {
             >
               {answer.text}
             </Box>
-          </Typography>
+          </Box>
 
           {answer.score && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

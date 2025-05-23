@@ -8,8 +8,26 @@ import { worker } from './mocks/browser';
 if (import.meta.env.DEV) {
   worker.start({
     onUnhandledRequest: 'bypass',
-  }).catch((error) => {
-    console.error('[MSW] Failed to start worker:', error);
+    quiet: true,
+    waitUntilReady: true, // Ждем готовности сервис-воркера
+  })
+    .then(() => {
+      console.log('%c[MSW] Mock Service Worker успешно запущен', 'color: #28a745; font-weight: bold;');
+      console.log('%c[MSW] Все запросы будут обрабатываться моком', 'color: #17a2b8;');
+    })
+    .catch((error) => {
+      console.error('%c[MSW] Ошибка при запуске Mock Service Worker:', 'color: #dc3545; font-weight: bold;');
+      console.error(error);
+    });
+
+  // Добавляем слушатель для отлова ошибок в работе MSW
+  worker.events.on('unhandledException', ({ error, request }) => {
+    console.error(
+      '%c[MSW] Необработанная ошибка при обработке запроса:',
+      'color: #dc3545; font-weight: bold;',
+      '\nЗапрос:', request.method, request.url,
+      '\nОшибка:', error
+    );
   });
 }
 

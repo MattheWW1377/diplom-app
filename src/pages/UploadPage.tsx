@@ -185,7 +185,7 @@ function UploadPage() {
         throw new Error(errorData.message || 'Ошибка при отправке ответа');
       }
 
-      const { id, score, comment } = await response.json();
+      const { id, score, comment, status } = await response.json();
 
       // Добавляем ответ в контекст
       addAnswer({
@@ -195,7 +195,7 @@ function UploadPage() {
         text: formData.text || formData.file?.name || '',
         fileName: formData.file?.name,
         fileType: formData.file ? getFileExtension(formData.file) : undefined,
-        status: 'pending',
+        status: status || 'pending',
         score: score || null,
         comment: comment || null,
       });

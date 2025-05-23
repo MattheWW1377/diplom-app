@@ -34,9 +34,13 @@ function LoginPage() {
         login(email, role);
         
         // Перенаправляем на соответствующую страницу в зависимости от роли
-        const from = location.state?.from?.pathname || 
-          (role === 'teacher' ? '/answers' : '/student/results');
-        navigate(from, { replace: true });
+        const defaultPath = role === 'teacher' ? '/answers' : '/student/results';
+        const from = location.state?.from?.pathname;
+        
+        // Если пользователь пришел с защищенного маршрута и это не детальная страница ответа,
+        // перенаправляем его обратно, иначе на главную страницу роли
+        const redirectTo = (from && !from.includes('/answer/')) ? from : defaultPath;
+        navigate(redirectTo, { replace: true });
       }
     } catch (err) {
       setError('Ошибка входа. Проверьте введенные данные.');
